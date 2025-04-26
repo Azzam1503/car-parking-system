@@ -8,5 +8,6 @@ export class ClearSlotDTO {
 
   @IsOptional()
   @IsString()
+  @Min(4)
   car_reg_number?: string;
 }
