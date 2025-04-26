@@ -1,98 +1,258 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Car Parking System API Documentation
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+This is a car parking system built with **NestJS**, which allows you to manage parking slots and park cars. The system provides multiple endpoints for operations such as creating a parking lot, parking cars, clearing slots, and checking slot statuses.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Endpoints
 
-## Description
+### 1. `POST /parking_lot`
+Create a parking lot with a given number of slots.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
-
-```bash
-$ npm install
+#### Payload:
+```json
+{
+  "no_of_slot": 2
+}
+```
+#### Response 
+```json
+{
+  "success": true,
+  "slots": 2,
+  "status": "created"
+}
 ```
 
-## Compile and run the project
+### 2. `PATCH /parking_lot`
+Create a parking lot with a given number of slots.
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+After creating the parking lot size can be increased from this endpoint 
+#### Payload:
+```json
+{
+  "no_of_slot": 2
+}
+```
+#### Response 
+```json
+{
+  "success": true,
+  "slots": 4,
+  "status": "created"
+}
 ```
 
-## Run tests
+### 3. `GET /parking_lot_size`
+Create a parking lot with a given number of slots.
 
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+#### Response 
+```json
+{
+  "total_slots": 4,
+  "slots_occupied": 0,
+  "slots_empty": 4
+}
 ```
 
-## Deployment
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### 4. `POST /park`
+Park the car at a empty slot.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+After creating the parking lot size can be increased from this endpoint 
+#### Payload:
+```json
+{
+  "car_reg_number": "1234",
+  "car_color": "red"
+}
+```
+#### Response 
+```json
+{
+  "success": true,
+  "slot_number": 1,
+  "status": "parked"
+}
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 5. `POST /park_at_slot`
+Park the car at a particular if slot is in range and empty.
 
-## Resources
+#### Payload:
+```json
+{
+  "car_reg_number": "1234",
+  "car_color": "red",
+  "slot_number": 4
+}
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+#### Response 
+```json
+{
+  "success": true,
+  "slot_number": 4,
+  "status": "parked"
+}
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### 6. `GET /registration_number/:color`
+Get all car registration numbers by car color.
 
-## Support
+#### Path Parameter:
+- **color** (string): The color of the car.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+#### Response:
+```json
+[
+  {
+    "car_reg_number": "1234",
+    "car_color": "red"
+  },
+  {
+    "car_reg_number": "5678",
+    "car_color": "red"
+  }
+]
+```
 
-## Stay in touch
+### 7. `Get/slot_number/:color`
+Get all slot numbers by car color.
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+#### Path Parameter:
+- **color** (string): The color of the car.
 
-## License
+#### Response:
+```json
+[
+  { 
+    "slot_number": 1,
+    "car_reg_number": "1234",
+    "car_color": "red"
+  },
+  {
+    "slot_number": 2,
+    "car_reg_number": "5678",
+    "car_color": "red"
+  }
+]
+```
+### 8. `POST /clear`
+Clear a parking slot by either slot number or car registration number.
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+#### Request Body:
+- **slot_number** (integer, optional): The slot number to clear.
+- **car_reg_number** (string, optional): The car registration number to clear.
+
+At least one of `slot_number` or `car_reg_number` must be provided.
+
+#### Example Request Body:
+```json
+{
+  "slot_number": 2
+}
+```
+or 
+```json
+{
+  "car_reg_number": "ABC1234"
+}
+```
+#### Response:
+```json
+{
+  "success": true,
+  "slot_number": 2,
+  "status": "cleared"
+}
+```
+
+### 9. `GET /status`
+Get the status of all parking slots, including information on whether the slot is empty or occupied.
+
+#### Response:
+```json
+{
+  "success": true,
+  "result": [
+    {
+      "slot_number": 1,
+      "message": "empty slot"
+    },
+    {
+      "slot_number": 2,
+      "car_reg_number": "1234",
+      "car_color": "red"
+    },
+    {
+      "slot_number": 3,
+      "message": "empty slot"
+    }
+  ]
+}
+```
+
+### 10. `GET /empty_slots`
+Get a list of all the empty parking slots.
+
+#### Response:
+```json
+{
+  "success": true,
+  "result": [1, 3]
+}
+```
+
+### 11. `GET /vehicle/:slot_num`
+Get the details of the vehicle parked in a specific slot.
+
+#### Parameters:
+- **slot_num** (integer): The slot number to retrieve the parked vehicle's details.
+
+#### Response:
+```json
+{
+  "success": true,
+  "slot_number": 1,
+  "car_reg_number": "1234",
+  "car_color": "red"
+}
+```
+
+### 12. `GET /slot/:car_reg_number`
+Get the slot number of a vehicle by its registration number.
+
+#### Parameters:
+- **car_reg_number** (string): The registration number of the vehicle.
+
+#### Response:
+```json
+{
+  "slot_number": 1,
+  "car_reg_number": "1234",
+  "car_color": "red"
+}
+```
+### 14. `POST /reset`
+Reset the parking lot, clearing all parked cars and resetting the lot size to zero.
+
+#### Response:
+```json
+{
+  "success": true,
+  "status": "reset",
+  "size": 0
+}
+```
+
+## Payload Validation
+
+DTOs (`ParkDTO`, `ParKSlotDTO`, `ClearSlotDTO`) and the `ValidationPipe` are used to ensure correct payload formats.
+
+### HTTP Errors:
+- **400 (Bad Request)**: Thrown when the provided payload is invalid or missing required fields.
+- **409 (Conflict)**: Thrown when there is a conflict, such as trying to park a car that's already parked.
+- **500 (Internal Server Error)**: Thrown when there is an unexpected error during the operation.
+
+### Notes:
+- All slots are **1-indexed**, meaning the first slot is slot 1, the second is slot 2, and so on.
+- **Car registration numbers are unique** across the parking lot. No two cars can have the same registration number in the same lot.
