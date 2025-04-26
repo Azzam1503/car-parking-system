@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, BadRequestException, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, BadRequestException, ValidationPipe, ParseIntPipe } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ParkDTO } from './dto/park.dto';
 import { ParKSlotDTO } from './dto/parkSlot.dto';
@@ -11,11 +11,6 @@ export class AppController {
   @Get()
   getHello(): string {
     return this.appService.getHello();
-  }
-
-  @Get('health')
-  getHeatlth(): string{
-    return this.appService.getHealthy();
   }
 
   @Post("parking_lot")
@@ -74,8 +69,8 @@ export class AppController {
   }
 
   @Get("vehicle/:slot_num")
-  getRegistrationNumberBySlotNumber(@Param("slot_num") slot_num: number){
-    return this.appService.getCarBySlotNumber(slot_num-1);
+  getCarBySlotNumber(@Param("slot_num", ParseIntPipe) slot_num: number){
+    return this.appService.getCarBySlotNumber(slot_num);
   }
 
   @Get("slot/:car_reg_number")

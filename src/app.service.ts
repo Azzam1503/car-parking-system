@@ -15,13 +15,8 @@ export class AppService {
   private totalSize: number;
   private size: number;
   getHello(): string {
-    console.log(this.slots);
     return 'Hello World!';
   }
-
-  getHealthy(): string {
-    return "from the provider i am healthy"
-  };
 
   private checkSlotsInitialized() {
     if (!this.slots || this.slots.length === 0) {
@@ -31,8 +26,12 @@ export class AppService {
 
   private checkIfCarAlreadyParked(car_reg_number: string){
     this.checkSlotsInitialized();
-    const slot = this.slots.find((slot) => slot !== null && slot.car_reg_number === car_reg_number);
-    return slot;
+    for(let i =0; i<this.slots.length; i++){
+      if (this.slots[i] !== null && this.slots[i]!.car_reg_number === car_reg_number) {
+        return {...this.slots[i], slot_number: i + 1};
+      }
+    }
+    return undefined;
   }
 
   createParkingLot(no_of_slot: number) {
@@ -40,7 +39,7 @@ export class AppService {
       this.slots = new Array(no_of_slot).fill(null);
       this.totalSize = no_of_slot;
       this.size = 0;
-      return {slots: no_of_slot, status: "created"};
+      return {success: true, slots: no_of_slot, status: "created"};
     } catch (error) {
       throw new InternalServerErrorException("Error creating parking lot: " + error.message);
     }
@@ -55,7 +54,7 @@ export class AppService {
       for(let i =0; i<oldSlots.length; i++){
         this.slots[i] = oldSlots[i];
       }
-      return {slots: this.totalSize, status: "updated slots"};
+      return {success: true, slots: this.totalSize, status: "updated slots"};
     } catch (error) {
       if(error instanceof HttpException) {
         throw error;
@@ -119,7 +118,8 @@ export class AppService {
   getStatus(){
     try {
       this.checkSlotsInitialized();
-      return this.slots;
+      const result = this.slots.map((slot, index) => slot === null ? {slot_number: index+1, message:"empty slot"} : {slot_number: index+1, car_reg_number: slot.car_reg_number, car_color: slot.car_color});
+      return {success:true, result};
     } catch (error) {
       if(error instanceof HttpException) throw error;
       throw new InternalServerErrorException("Error  getting status: " + error.message);
@@ -128,8 +128,11 @@ export class AppService {
 
   getRegistrationNumberByColor(color: string){
     try {
-      if(this.slots === undefined || this.slots === null) return {slots: 0, status: "created slots first"};
-      let result = this.slots.filter((slot) => slot !== null && slot.car_color === color);
+      this.checkSlotsInitialized();
+      if(!color) throw new BadRequestException("color is required");
+      let result = this.slots.filter((slot): slot is { car_reg_number: string; car_color: string } =>
+        slot !== null && slot.car_color === color
+      );
       return result;
     } catch (error) {
       if(error instanceof HttpException) throw error;
@@ -151,11 +154,11 @@ export class AppService {
     //     });
     //   }
     // }
-
+    
     const result = this.slots.map((slot, index) => {
       return slot !== null ? slot.car_color === color ? {slot_number: index + 1, car_reg_number: slot.car_reg_number, car_color: slot.car_color} : null : null;
     }).filter((slot) => slot !== null);
-    return result;
+    return {sucess: true, result};
     } catch (error) {
       if(error instanceof HttpException) throw error;
       throw new InternalServerErrorException("Error  getting status: " + error.message);
@@ -179,8 +182,8 @@ export class AppService {
       }else if(car_reg_number){
         const slot = this.checkIfCarAlreadyParked(car_reg_number);
         console.log(slot);
-        if(slot === undefined) throw new ConflictException("car not found");
-        const index = this.slots.indexOf(slot);
+        if (slot === undefined) throw new ConflictException("car not found");
+        let index = slot.slot_number - 1;
         this.slots[index] = null;
         this.size = this.size - 1; 
         return {success: true, slot_number: index + 1, status: "cleared"};
@@ -193,25 +196,13 @@ export class AppService {
   }
 
 
-  getSlotByCarRegNumber(car_reg_number: string){
-    try {
-      this.checkSlotsInitialized();
-      let slot = this.slots.find((slot, index) => slot !== null && slot.car_reg_number === car_reg_number);
-      if(slot === null || slot === undefined) return {status: "car not found"};
-      return {slot_number: this.slots.indexOf(slot) + 1, car_reg_number: slot.car_reg_number, car_color: slot.car_color};
-    } catch (error) {
-      if(error instanceof HttpException) throw error;
-      throw new InternalServerErrorException("Error  getting status: " + error.message);
-    }
-  }
-
   getCarBySlotNumber(slot_number: number){
     try {
       this.checkSlotsInitialized();
-      if(slot_number < 0 || slot_number >= this.totalSize) return {status: "slot number out of range"};
-      let slot = this.slots[slot_number];
-      if(slot === null) return {status: "slot is empty"};
-      return {slot_number:slot_number+1, car_reg_number: slot.car_reg_number, car_color: slot.car_color};
+      if(slot_number < 1 || slot_number > this.totalSize) throw new BadRequestException("slot number out of range");
+      let slot = this.slots[slot_number-1];
+      if(slot === null) throw new ConflictException("slot is empty");
+      return {sucess: true, slot_number:slot_number+1, car_reg_number: slot.car_reg_number, car_color: slot.car_color};
     } catch (error) {
       if(error instanceof HttpException) throw error;
       throw new InternalServerErrorException("Error  getting status: " + error.message);
@@ -223,7 +214,7 @@ export class AppService {
     try {
       this.checkSlotsInitialized();
       let slot = this.slots.find((slot, index) => slot !== null && slot.car_reg_number === car_reg_number);
-      if(slot === null || slot === undefined) return {status: "car not found"};
+      if(slot === null || slot === undefined) throw new ConflictException("car not found");
       return {slot_number: this.slots.indexOf(slot) + 1, car_reg_number: slot.car_reg_number, car_color: slot.car_color};
     } catch (error) {
       if(error instanceof HttpException) throw error;
@@ -249,7 +240,7 @@ export class AppService {
       this.slots = [];
       this.size = 0;
       this.totalSize = 0;
-      return {status: "reset"};
+      return {success: true, status: "reset", size: this.size};
     } catch (error) {
       if(error instanceof HttpException) throw error;
       throw new InternalServerErrorException("Error  getting status: " + error.message);
