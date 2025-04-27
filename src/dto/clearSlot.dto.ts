@@ -1,4 +1,4 @@
-import { IsOptional, IsNumber, IsString, Min } from 'class-validator';
+import { IsOptional, IsNumber, IsString, Min, MinLength } from 'class-validator';
 
 export class ClearSlotDTO {
   @IsOptional()
@@ -8,6 +8,6 @@ export class ClearSlotDTO {
 
   @IsOptional()
   @IsString()
-  @Min(4)
+  @MinLength(4)
   car_reg_number?: string;
 }

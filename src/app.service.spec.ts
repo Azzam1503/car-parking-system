@@ -106,8 +106,8 @@ describe('AppService', () => {
       service.parkCar({ car_reg_number: '1234', car_color: 'red' });
       service.parkCar({ car_reg_number: '1324', car_color: 'black' });
       const result = service.getRegistrationNumberByColor('red');
-      expect(result.length).toBe(1);
-      expect(result[0].car_color).toBe('red');
+      expect(result.result.length).toBe(1);
+      expect(result.result[0].car_color).toBe('red');
     });
   });
 

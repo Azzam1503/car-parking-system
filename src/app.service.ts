@@ -12,6 +12,8 @@ export class AppService {
     } | null
   )[];
   
+  private freeSlots: Set<number>;
+
   private totalSize: number;
   private size: number;
   getHello(): string {
@@ -39,27 +41,35 @@ export class AppService {
       this.slots = new Array(no_of_slot).fill(null);
       this.totalSize = no_of_slot;
       this.size = 0;
+      this.freeSlots = new Set(
+        Array.from({ length: no_of_slot }, (_, i) => i)
+      );
       return {success: true, slots: no_of_slot, status: "created"};
     } catch (error) {
-      throw new InternalServerErrorException("Error creating parking lot: " + error.message);
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException("An unexpected error occurred: " + error.message);
     }
   };
 
   updateParkingLot(no_of_slot: number){
     try {
       this.checkSlotsInitialized();
-      this.totalSize = this.totalSize + no_of_slot;
-      let oldSlots = this.slots;
-      this.slots = new Array(this.totalSize).fill(null);
-      for(let i =0; i<oldSlots.length; i++){
-        this.slots[i] = oldSlots[i];
+      if (no_of_slot <= 0) return { success: false, status: "No slots to add" };
+  
+      this.totalSize += no_of_slot;
+      let oldTotalSize = this.slots.length;
+      this.slots.length = this.totalSize; 
+      this.slots.fill(null, oldTotalSize);
+  
+      for (let i = oldTotalSize; i < this.totalSize; i++) {
+        this.freeSlots.add(i);
       }
+
+      console.log(this.slots, this.freeSlots);
       return {success: true, slots: this.totalSize, status: "updated slots"};
     } catch (error) {
-      if(error instanceof HttpException) {
-        throw error;
-      }
-      throw new InternalServerErrorException("Error updating parking lot: " + error.message);
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException("An unexpected error occurred: " + error.message);
     }
   }
 
@@ -68,10 +78,8 @@ export class AppService {
       this.checkSlotsInitialized();
       return {total_slots: this.totalSize, slots_occupied: this.size, slots_empty: this.totalSize - this.size};
     }catch(error){
-      if(error instanceof HttpException) {
-        throw error;
-      }
-      throw new InternalServerErrorException("Error getting parking lot size: " + error.message);
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException("An unexpected error occurred: " + error.message);
     }
   };
 
@@ -81,18 +89,19 @@ export class AppService {
       this.checkSlotsInitialized();
       if(this.size == this.totalSize) throw new ConflictException("parking lot is full");
       if(this.checkIfCarAlreadyParked(car_reg_number) !== undefined) throw new ConflictException("car already parked");
-      const emptyIndex = this.slots.findIndex((slot) => slot === null);
-      if(emptyIndex === -1) {
+      const emptyIndex = this.freeSlots.values().next().value;
+    
+      if (emptyIndex === undefined) {
         throw new InternalServerErrorException("No empty slot found despite size check");
       }
-     
+  
       this.slots[emptyIndex] = {car_reg_number: car_reg_number, car_color: car_color};
       this.size = this.size + 1;
-
+      this.freeSlots.delete(emptyIndex);
       return {success: true, slot_number: emptyIndex+1, status: "parked"};
     } catch (error) {
-      if(error instanceof HttpException) throw error;
-      throw new InternalServerErrorException("Error parking car: " + error.message);
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException("An unexpected error occurred: " + error.message);
     }
   };
 
@@ -106,12 +115,13 @@ export class AppService {
 
       if(this.slots[slot_number - 1] !== null) throw new ConflictException("slot already occupied");
       
-      this.slots[slot_number - 1] = {car_reg_number: car_reg_number, car_color: car_color};
       this.size = this.size + 1;
+      this.freeSlots.delete(slot_number - 1);
+      this.slots[slot_number - 1] = {car_reg_number: car_reg_number, car_color: car_color};
       return {success: true, slot_number: slot_number, status: "parked"};
     } catch (error) {
-      if(error instanceof HttpException) throw error;
-      throw new InternalServerErrorException("Error parking car: " + error.message);
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException("An unexpected error occurred: " + error.message);
     }
   }
   
@@ -121,8 +131,8 @@ export class AppService {
       const result = this.slots.map((slot, index) => slot === null ? {slot_number: index+1, message:"empty slot"} : {slot_number: index+1, car_reg_number: slot.car_reg_number, car_color: slot.car_color});
       return {success:true, result};
     } catch (error) {
-      if(error instanceof HttpException) throw error;
-      throw new InternalServerErrorException("Error  getting status: " + error.message);
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException("An unexpected error occurred: " + error.message);
     }
   }
 
@@ -133,10 +143,10 @@ export class AppService {
       let result = this.slots.filter((slot): slot is { car_reg_number: string; car_color: string } =>
         slot !== null && slot.car_color === color
       );
-      return result;
+      return { success: true, result: result.length > 0 ? result : [] };
     } catch (error) {
-      if(error instanceof HttpException) throw error;
-      throw new InternalServerErrorException("Error  getting status: " + error.message);
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException("An unexpected error occurred: " + error.message);
     }
   }
 
@@ -158,10 +168,10 @@ export class AppService {
     const result = this.slots.map((slot, index) => {
       return slot !== null ? slot.car_color === color ? {slot_number: index + 1, car_reg_number: slot.car_reg_number, car_color: slot.car_color} : null : null;
     }).filter((slot) => slot !== null);
-    return {sucess: true, result};
+    return { success: true, result: result.length > 0 ? result : [] };
     } catch (error) {
-      if(error instanceof HttpException) throw error;
-      throw new InternalServerErrorException("Error  getting status: " + error.message);
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException("An unexpected error occurred: " + error.message);
     }
   }
 
@@ -178,6 +188,7 @@ export class AppService {
 
         this.slots[slot_number - 1] = null;
         this.size = this.size - 1;
+        this.freeSlots.add(slot_number - 1);
         return {success: true, slot_number: slot_number, status: "cleared"};
       }else if(car_reg_number){
         const slot = this.checkIfCarAlreadyParked(car_reg_number);
@@ -185,13 +196,14 @@ export class AppService {
         if (slot === undefined) throw new ConflictException("car not found");
         let index = slot.slot_number - 1;
         this.slots[index] = null;
+        this.freeSlots.add(index);
         this.size = this.size - 1; 
         return {success: true, slot_number: index + 1, status: "cleared"};
       }
       
     } catch (error) {
-      if(error instanceof HttpException) throw error;
-      throw new InternalServerErrorException("Error  getting status: " + error.message);
+      if (error instanceof HttpException)  throw error;
+      throw new InternalServerErrorException("An unexpected error occurred: " + error.message);
     }
   }
 
@@ -202,10 +214,10 @@ export class AppService {
       if(slot_number < 1 || slot_number > this.totalSize) throw new BadRequestException("slot number out of range");
       let slot = this.slots[slot_number-1];
       if(slot === null) throw new ConflictException("slot is empty");
-      return {sucess: true, slot_number:slot_number+1, car_reg_number: slot.car_reg_number, car_color: slot.car_color};
+      return {sucess: true, slot_number:slot_number, car_reg_number: slot.car_reg_number, car_color: slot.car_color};
     } catch (error) {
-      if(error instanceof HttpException) throw error;
-      throw new InternalServerErrorException("Error  getting status: " + error.message);
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException("An unexpected error occurred: " + error.message);
     }
   }
 
@@ -217,8 +229,8 @@ export class AppService {
       if(slot === null || slot === undefined) throw new ConflictException("car not found");
       return {slot_number: this.slots.indexOf(slot) + 1, car_reg_number: slot.car_reg_number, car_color: slot.car_color};
     } catch (error) {
-      if(error instanceof HttpException) throw error;
-      throw new InternalServerErrorException("Error  getting status: " + error.message);
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException("An unexpected error occurred: " + error.message);
     }    
   }
 
@@ -230,8 +242,8 @@ export class AppService {
       .filter((slot) => slot.isEmpty).map((slot) => slot.slot_number);
       return emptySlots;
     } catch (error) {
-      if(error instanceof HttpException) throw error;
-      throw new InternalServerErrorException("Error  getting status: " + error.message);
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException("An unexpected error occurred: " + error.message);
     }
   }
 
@@ -242,8 +254,8 @@ export class AppService {
       .filter((slot) => !slot.isEmpty).map((slot) => slot.slot_number);
       return occupiedSlots;
     } catch (error) {
-      if(error instanceof HttpException) throw error;
-      throw new InternalServerErrorException("Error  getting status: " + error.message);
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException("An unexpected error occurred: " + error.message);
     }
   }
 
@@ -254,8 +266,8 @@ export class AppService {
       this.totalSize = 0;
       return {success: true, status: "reset", size: this.size};
     } catch (error) {
-      if(error instanceof HttpException) throw error;
-      throw new InternalServerErrorException("Error  getting status: " + error.message);
+      if (error instanceof HttpException) throw error;
+      throw new InternalServerErrorException("An unexpected error occurred: " + error.message);
     }
   }
 }
