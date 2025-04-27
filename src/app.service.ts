@@ -235,6 +235,18 @@ export class AppService {
     }
   }
 
+  getAllOccupiedSlots(){
+    try {
+      this.checkSlotsInitialized();
+      let occupiedSlots = this.slots.map((slot, index) => slot !== null ? {slot_number: index + 1, car_reg_number: slot.car_reg_number, isEmpty: false} : {slot_number: index + 1, isEmpty: true}) 
+      .filter((slot) => !slot.isEmpty).map((slot) => slot.slot_number);
+      return occupiedSlots;
+    } catch (error) {
+      if(error instanceof HttpException) throw error;
+      throw new InternalServerErrorException("Error  getting status: " + error.message);
+    }
+  }
+
   resetParkingLot(){
     try {
       this.slots = [];

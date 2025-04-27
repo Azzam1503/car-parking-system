@@ -202,7 +202,18 @@ Get a list of all the empty parking slots.
 }
 ```
 
-### 11. `GET /vehicle/:slot_num`
+### 11. `GET /empty_slots`
+Get a list of all the occupied parking slots.
+
+#### Response:
+```json
+{
+  "success": true,
+  "result": [2, 4]
+}
+```
+
+### 12. `GET /vehicle/:slot_num`
 Get the details of the vehicle parked in a specific slot.
 
 #### Parameters:
@@ -218,7 +229,7 @@ Get the details of the vehicle parked in a specific slot.
 }
 ```
 
-### 12. `GET /slot/:car_reg_number`
+### 13. `GET /slot/:car_reg_number`
 Get the slot number of a vehicle by its registration number.
 
 #### Parameters:

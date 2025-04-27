@@ -68,6 +68,11 @@ export class AppController {
     return this.appService.getAllEmptySlots();
   }
 
+  @Get("occupied_slots")
+  getAllOccupiedSlots(){
+    return this.appService.getAllOccupiedSlots();
+  }
+  
   @Get("vehicle/:slot_num")
   getCarBySlotNumber(@Param("slot_num", ParseIntPipe) slot_num: number){
     return this.appService.getCarBySlotNumber(slot_num);

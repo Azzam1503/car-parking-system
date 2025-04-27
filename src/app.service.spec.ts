@@ -176,6 +176,16 @@ describe('AppService', () => {
     });
   });
 
+  describe('getAllOccupiedSlots', () => {
+    it("should return all occupied slots", () =>{
+        service.createParkingLot(5);
+        service.parkCarAtSlot({slot_number: 1,  car_reg_number: '9999', car_color: 'red' });
+        service.parkCarAtSlot({slot_number: 4,  car_reg_number: '9991', car_color: 'red' });
+        service.parkCarAtSlot({slot_number: 5,  car_reg_number: '1991', car_color: 'black' });
+        expect(service.getAllOccupiedSlots().length).toBe(3);
+    })
+  })
+
   describe('resetParkingLot', () => {
     it('should reset the parking lot', () => {
       service.createParkingLot(2);

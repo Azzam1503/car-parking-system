@@ -1,9 +1,9 @@
-import {IsString, IsNotEmpty, Min} from 'class-validator';
+import {IsString, IsNotEmpty, MinLength} from 'class-validator';
 
 export class ParkDTO{
     @IsString()
     @IsNotEmpty()
-    @Min(4)
+    @MinLength(4)
     car_reg_number: string;
     
     @IsString()
